@@ -1,11 +1,12 @@
+/**
+ *
+ */
+
 package de.lmu.nfcrevision
 
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
-import android.nfc.NfcManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -38,18 +39,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // set up the database connection
+        questionDao =  QuestionDatabase.getDatabase(application).questionDao()
+
+
         // check if the activity was started because of an NDEF_DISCOVERED action
         if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
             handleNDEFIntent(intent)
         }
-
-        val nfcManager = getSystemService(Context.NFC_SERVICE) as NfcManager
-        adapter = nfcManager.defaultAdapter
-
-
-        // set up the database connection
-        questionDao =  QuestionDatabase.getDatabase(application).questionDao()
-
 
         // set up the view
         questionText = findViewById(R.id.question_text)
@@ -85,34 +82,11 @@ class MainActivity : AppCompatActivity() {
 //        populateDatabaseWithSampleData()
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        // Detect NFC tags while the app is in foreground
-        try {
-            val intent = Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            val nfcPendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
-            adapter.enableForegroundDispatch(this, nfcPendingIntent, null, null)
-        } catch (ex: IllegalStateException) {
-            Log.e("Main", "Error enabling NFC foreground dispatch", ex)
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-
-        // Stop detecting NFC tags when the app moves to the background
-        try {
-            val intent = Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            val nfcPendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
-            adapter.enableForegroundDispatch(this, nfcPendingIntent, null, null)
-        } catch (ex: IllegalStateException) {
-            Log.e("Main", "Error enabling NFC foreground dispatch", ex)
-        }
-    }
-
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+
+        // set up the database connection
+        questionDao =  QuestionDatabase.getDatabase(application).questionDao()
 
         if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent?.action) {
             handleNDEFIntent(intent)

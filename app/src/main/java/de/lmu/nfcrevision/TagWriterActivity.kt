@@ -61,7 +61,7 @@ class TagWriterActivity: AppCompatActivity() {
         val message = NdefMessage(
             arrayOf(
                 NdefRecord.createMime("text/plain", "Location1".toByteArray()), // adjust the location you want by replacing "Location1"
-                NdefRecord.createApplicationRecord("de.lmu.nfctest")
+                NdefRecord.createApplicationRecord("de.lmu.nfcrevision")
             )
         )
 
