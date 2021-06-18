@@ -25,4 +25,7 @@ interface QuestionDao {
 
     @Update(onConflict = OnConflictStrategy.IGNORE)
     suspend fun update(quiz: Question)
+
+    @Query("SELECT DISTINCT location from question")
+    suspend fun getAllLocations(): List<String>
 }

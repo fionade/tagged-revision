@@ -9,11 +9,14 @@ import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 import de.lmu.nfcrevision.datahandling.Question
 import de.lmu.nfcrevision.datahandling.QuestionDao
 import de.lmu.nfcrevision.datahandling.QuestionDatabase
@@ -21,8 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var adapter: NfcAdapter
 
     private lateinit var questionDao: QuestionDao
 
@@ -93,6 +94,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.action_bar_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.add_location -> {
+            val intent = Intent(this, TagWriterActivity::class.java)
+            startActivity(intent)
+            true
+        }
+
+        R.id.add_question -> {
+            val intent = Intent(this, QuestionEditorActivity::class.java)
+            startActivity(intent)
+            true
+        }
+
+        else -> {
+            super.onOptionsItemSelected(item)
+        }
+    }
+
     /**
      * Reads messages on a detected NFC tag
      * If a valid location is found, questions for this location are retrieved and shown
@@ -105,8 +129,7 @@ class MainActivity : AppCompatActivity() {
                 for (record in message.records) {
                     val payload = String(record.payload)
                     Log.d("Main", payload)
-                    // TODO: adjust to more generic locations, e.g. via mimeType
-                    if (payload.startsWith("Loc")) {
+                    if (String(record.type) == "text/plain") {
                         getQuestionsForLocation(payload)
                     }
                 }
@@ -124,6 +147,11 @@ class MainActivity : AppCompatActivity() {
             if (questionList.isNotEmpty()) {
                 runOnUiThread {
                     setNewQuestion()
+                }
+            }
+            else {
+                runOnUiThread {
+                    Snackbar.make(instructionText, getString(R.string.no_questions_found), Snackbar.LENGTH_SHORT).show()
                 }
             }
         }
