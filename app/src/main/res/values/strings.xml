@@ -17,4 +17,5 @@
     <string name="no_location_selected">Please select a location</string>
     <string name="question_or_answer_missing">Please enter a question and answer</string>
     <string name="no_questions_found">No questions found at this location</string>
+    <string name="connection_error">Connection Error</string>
 </resources>

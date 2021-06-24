@@ -29,14 +29,13 @@ class QuestionEditorActivity : AppCompatActivity() {
 
         val locationOptions = findViewById<RadioGroup>(R.id.location_options)
 
-        val questionDao =  QuestionDatabase.getDatabase(application).questionDao()
+        val questionDao = QuestionDatabase.getDatabase(application).questionDao()
+        val locationDao = QuestionDatabase.getDatabase(application).locationDao()
 
         val currentActivity = this
 
-        // retrieving all locations that already have questions
-        // TODO: add new locations!
         lifecycleScope.launch(Dispatchers.IO) {
-            val locations = questionDao.getAllLocations()
+            val locations = locationDao.getAllLocations()
             runOnUiThread {
                 for (location in locations) {
                     val option = RadioButton(currentActivity)

@@ -9,7 +9,7 @@ For example, say an appropriately formatted (see below) NFC tag is attached to t
 The `TagWriterActivity` can be used for preparing the NFC tags with the appropriate NDEF data. To run this activity, tap the "add location" entry in the action bar at the top of the main view. Then, touch a new NFC tag. The device should vibrate when it detects the tag and show a text entry field. Enter the desired location description. Make sure to leave the device close to the tag, so the connection can be upheld and the information can be written.
 
 ### Adding questions
-To add questions, tap the "add question" entry in the action bar menu. Enter a question and answer and select a location. Currently, data for new, unused locations cannot yet be added via the UI.
+To add questions, tap the "add question" entry in the action bar menu. Enter a question and answer and select a location. Only locations that have already been added are displayed
 
 
 ### Populating the database with sample data

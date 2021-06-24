@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
+import de.lmu.nfcrevision.datahandling.Location
 import de.lmu.nfcrevision.datahandling.Question
 import de.lmu.nfcrevision.datahandling.QuestionDao
 import de.lmu.nfcrevision.datahandling.QuestionDatabase
@@ -42,7 +43,6 @@ class MainActivity : AppCompatActivity() {
 
         // set up the database connection
         questionDao =  QuestionDatabase.getDatabase(application).questionDao()
-
 
         // check if the activity was started because of an NDEF_DISCOVERED action
         if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent.action) {
@@ -143,7 +143,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun getQuestionsForLocation(location: String) {
         lifecycleScope.launch(Dispatchers.IO) {
-            questionList = questionDao.getQuestions(location)
+            questionList = questionDao.getQuestionsAtLocation(location)
             if (questionList.isNotEmpty()) {
                 runOnUiThread {
                     setNewQuestion()
@@ -179,6 +179,13 @@ class MainActivity : AppCompatActivity() {
     private fun populateDatabaseWithSampleData() {
 
         lifecycleScope.launch(Dispatchers.IO) {
+
+            val locationDao =  QuestionDatabase.getDatabase(application).locationDao()
+
+            locationDao.insert(Location("Location1"))
+            locationDao.insert(Location("Location2"))
+            locationDao.insert(Location("Coffee Machine"))
+
             questionDao.insert(arrayListOf(
                 Question("What is the statement for printing the line \"Hello World\" in Java code?", "System.out.println(\"Hello World\");", "Location1"),
                 Question("What is the result of the expression \"true | false\" in Java?", "true", "Location1"),

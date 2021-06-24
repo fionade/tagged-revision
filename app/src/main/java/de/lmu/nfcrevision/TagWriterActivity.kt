@@ -8,10 +8,18 @@ import android.nfc.tech.Ndef
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
+import de.lmu.nfcrevision.datahandling.Location
+import de.lmu.nfcrevision.datahandling.LocationDao
+import de.lmu.nfcrevision.datahandling.QuestionDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /* Activate the intent filters for this activity in the manifest to write to new NFC tags */
 class TagWriterActivity: AppCompatActivity() {
@@ -22,6 +30,8 @@ class TagWriterActivity: AppCompatActivity() {
     private lateinit var initialInstructions: View
 
     private lateinit var adapter: NfcAdapter
+
+    private lateinit var locationDao: LocationDao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +45,8 @@ class TagWriterActivity: AppCompatActivity() {
 
         val nfcManager = getSystemService(Context.NFC_SERVICE) as NfcManager
         adapter = nfcManager.defaultAdapter
+
+        locationDao = QuestionDatabase.getDatabase(application).locationDao()
     }
 
     override fun onResume() {
@@ -73,12 +85,29 @@ class TagWriterActivity: AppCompatActivity() {
         locationTitle.visibility = View.VISIBLE
         initialInstructions.visibility = View.GONE
 
-        writeButton.setOnClickListener {
-            if (editLocation.text.toString().isBlank() ) {
-                Snackbar.make(writeButton, getString(R.string.location_missing), Snackbar.LENGTH_SHORT).show()
+        editLocation.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE){
+                triggerWriting(ndef)
+                true
             }
-            else{
+            else {
+                false
+            }
+        }
+
+        writeButton.setOnClickListener {
+            triggerWriting(ndef)
+        }
+    }
+
+    private fun triggerWriting(ndef: Ndef) {
+        if (editLocation.text.toString().isBlank() ) {
+            Snackbar.make(editLocation, getString(R.string.location_missing), Snackbar.LENGTH_SHORT).show()
+        }
+        else{
+            try {
                 writeMessage(ndef)
+
                 val snackbar = Snackbar.make(writeButton, getString(R.string.location_added), Snackbar.LENGTH_SHORT)
                 snackbar.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
                     override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
@@ -87,6 +116,11 @@ class TagWriterActivity: AppCompatActivity() {
                     }
                 })
                 snackbar.show()
+            }
+            catch(exception: Exception) {
+                val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(editLocation.windowToken, 0)
+                Snackbar.make(writeButton, getString(R.string.connection_error), Snackbar.LENGTH_SHORT).show()
             }
         }
     }
@@ -102,6 +136,11 @@ class TagWriterActivity: AppCompatActivity() {
 
         ndef.connect()
         ndef.writeNdefMessage(message)
+
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            locationDao.insert(Location(editLocation.text.toString()))
+        }
 
     }
 
